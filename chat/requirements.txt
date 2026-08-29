@@ -1,8 +1,11 @@
-python-chess
-openai
-streamlit==1.37.0
-elasticsearch
-psycopg2-binary
-python-dotenv
-chess
-chardet
+# Deprecated: use pyproject.toml + poetry. Kept for reference, pinned versions from pyproject.
+python-chess>=1.999,<2.0
+openai>=1.84.0,<2.0.0
+streamlit>=1.45.1,<2.0.0
+elasticsearch>=7.17,<8.0
+psycopg2-binary>=2.9.10,<3.0.0
+python-dotenv>=1.1.0,<2.0.0
+chardet>=5.2.0,<6.0.0
+pydantic-settings>=2.0,<3.0
+cachetools>=5.0,<6.0
+requests>=2.0,<3.0

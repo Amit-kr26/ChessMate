@@ -1,0 +1,9 @@
+[server]
+enableStaticServing = true
+headless = true
+port = 8501
+enableCORS = true
+enableXsrfProtection = false
+
+[browser]
+gatherUsageStats = false

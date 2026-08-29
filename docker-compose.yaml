@@ -6,28 +6,42 @@ services:
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
-      - "ES_JAVA_OPTS=-Xms1g -Xmx1g -Des.cgroups.hierarchy.override=/"
-      - "logger.org.elasticsearch=DEBUG"
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      - "logger.org.elasticsearch=INFO"
     ulimits:
       memlock:
         soft: -1
         hard: -1
     ports:
-      - "${ELASTIC_PORT:-9200}:9200"
-      - "9300:9300"
+      - "127.0.0.1:${ELASTIC_PORT:-9200}:9200"
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
   postgres:
-    image: postgres:13
+    image: postgres:16-alpine
     container_name: postgres
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB required}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD required}
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
   chess_assistant_app:
     build:
       context: .
@@ -35,28 +49,58 @@ services:
     container_name: chess_assistant_app
     environment:
       - ELASTIC_URL=http://elasticsearch:${ELASTIC_PORT:-9200}
+      - ELASTIC_URL_LOCAL=http://elasticsearch:${ELASTIC_PORT:-9200}
       - POSTGRES_HOST=postgres
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - INDEX_NAME=${INDEX_NAME}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - INDEX_NAME=${INDEX_NAME:-chess-rag}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:?OPENAI_API_KEY required}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL:-}
+      - OPENAI_API_BASE=${OPENAI_API_BASE:-}
+      - LLM_GATEWAY_URL=${LLM_GATEWAY_URL:-}
+      - LLM_BASE_URL=${LLM_BASE_URL:-}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-3.5-turbo}
+      - OPENAI_EVAL_MODEL=${OPENAI_EVAL_MODEL:-gpt-3.5-turbo}
+      - OPENAI_TIMEOUT=${OPENAI_TIMEOUT:-20}
+      - STOCKFISH_PATH=/usr/games/stockfish
+      - REDIS_URL=${REDIS_URL:-}
+      - APP_ENV=${APP_ENV:-production}
     ports:
       - "${STREAMLIT_PORT:-8501}:8501"
     depends_on:
-      - elasticsearch
-      - postgres
+      elasticsearch:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8501/_stcore/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:11.2.0
     container_name: grafana
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     volumes:
       - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+      - ./monitoring/grafana/dashboard.json:/etc/grafana/provisioning/dashboards/chessmate.json
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD required – set strong password}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
 volumes:
   elasticsearch_data:
   postgres_data:

@@ -1,25 +1,70 @@
 [project]
 name = "chat"
 version = "0.1.0"
-description = ""
+description = "ChessMate – RAG chess coach with Stockfish truth layer"
 authors = [
     {name = "Amit-kr26",email = "amitkr97531@gmail.com"}
 ]
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.13,<4"
 dependencies = [
     "python-chess (>=1.999,<2.0)",
     "openai (>=1.84.0,<2.0.0)",
     "streamlit (>=1.45.1,<2.0.0)",
-    "elasticsearch (>=9.0.2,<10.0.0)",
+    "elasticsearch (>=7.17,<8.0)",
     "psycopg2-binary (>=2.9.10,<3.0.0)",
     "python-dotenv (>=1.1.0,<2.0.0)",
-    "chess (>=1.11.2,<2.0.0)",
     "chardet (>=5.2.0,<6.0.0)",
-    "dotenv (>=0.9.9,<0.10.0)"
+    "pydantic-settings (>=2.0,<3.0)",
+    "cachetools (>=5.0,<6.0)",
+    "requests (>=2.0,<3.0)"
 ]
 
+[project.optional-dependencies]
+dev = [
+    "pytest (>=8.0,<9.0)",
+    "pytest-cov",
+    "ruff (>=0.8,<1.0)",
+    "mypy (>=1.13,<2.0)",
+    "types-requests"
+]
+
+[tool.poetry]
+package-mode = false
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-q --strict-markers"
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+lint.select = ["E", "F", "W", "C90", "I", "B", "UP"]
+lint.ignore = ["E501"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.mypy]
+python_version = "3.13"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+explicit_package_bases = true
+mypy_path = "."
+exclude = ["tests/"]
+
+[tool.coverage.run]
+source = ["utils"]
+omit = ["tests/*"]
+
+[dependency-groups]
+dev = [
+    {include-group = "dev"}
+]

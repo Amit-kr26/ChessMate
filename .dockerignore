@@ -1,0 +1,30 @@
+.git
+.gitignore
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.venv
+venv
+env
+.env
+.env.local
+.mypy_cache
+.pytest_cache
+.ruff_cache
+htmlcov
+.coverage
+docs
+img/*.png
+!img/app.png
+.DS_Store
+*:Zone.Identifier
+*Zone.Identifier
+# keep required data for setup.py (do not ignore the DB)
+# data/*.pgn would break COPY ./data – allow the required file
+data/*.pgn
+!data/lichess_db.pgn
+!data/.gitkeep
+data/*.csv
+!data/lichess_puzzle.csv
+monitoring

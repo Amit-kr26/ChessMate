@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install poetry
+        run: pip install poetry==2.1.1
+      - name: Install deps
+        working-directory: chat
+        run: poetry install --no-interaction
+      - name: Check lock
+        working-directory: chat
+        run: poetry check --lock
+      - name: Lint (ruff)
+        working-directory: chat
+        run: poetry run ruff check . || true
+      - name: Type (mypy)
+        working-directory: chat
+        run: poetry run mypy utils --ignore-missing-imports || true
+      - name: Tests
+        working-directory: chat
+        run: poetry run pytest -q
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: docker compose config && docker compose build

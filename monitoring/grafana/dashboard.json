@@ -286,7 +286,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT\n  timestamp AS time,\n  prompt_tokens,\n  completion_tokens,\n  total_tokens\nFROM conversations\nORDER BY timestamp",
+          "rawSql": "SELECT\n  timestamp AS time,\n  prompt_tokens,\n  completion_tokens,\n  total_tokens\nFROM conversations\nWHERE $__timeFilter(timestamp)\nORDER BY timestamp",
           "refId": "A",
           "sql": {
             "columns": [
@@ -400,7 +400,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT\n  timestamp AS time,\n  eval_prompt_tokens,\n  eval_completion_tokens,\n  eval_total_tokens\nFROM conversations\nORDER BY timestamp",
+          "rawSql": "SELECT\n  timestamp AS time,\n  eval_prompt_tokens,\n  eval_completion_tokens,\n  eval_total_tokens\nFROM conversations\nWHERE $__timeFilter(timestamp)\nORDER BY timestamp",
           "refId": "A",
           "sql": {
             "columns": [
@@ -514,7 +514,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT\n  timestamp AS time,\n  response_time\nFROM conversations\nORDER BY timestamp",
+          "rawSql": "SELECT\n  timestamp AS time,\n  response_time\nFROM conversations\nWHERE $__timeFilter(timestamp)\nORDER BY timestamp",
           "refId": "A",
           "sql": {
             "columns": [
@@ -603,7 +603,7 @@
           "editorMode": "code",
           "format": "table",
           "rawQuery": true,
-          "rawSql": "SELECT\n  timestamp AS time,\n  question,\n  answer,\n  relevance\nFROM conversations\nORDER BY timestamp DESC\nLIMIT 5",
+          "rawSql": "SELECT\n  timestamp AS time,\n  question,\n  answer,\n  relevance\nFROM conversations\nWHERE $__timeFilter(timestamp)\nORDER BY timestamp DESC\nLIMIT 5",
           "refId": "A",
           "sql": {
             "columns": [
